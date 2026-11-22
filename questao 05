@@ -1,0 +1,184 @@
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Keyboard,
+} from 'react-native';
+
+export default function App() {
+  const [saldo, setSaldo] = useState(1000);
+  const [valor, setValor] = useState('');
+  const [erro, setErro] = useState('');
+  const [mensagem, setMensagem] = useState('');
+
+  function formatarMoeda(num) {
+    return (
+      'R$ ' +
+      num
+        .toFixed(2)
+        .replace('.', ',')
+        .replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+    );
+  }
+
+  function realizarOperacao(tipo) {
+    Keyboard.dismiss();
+
+    let textoLimpo = valor.trim();
+    if (textoLimpo.includes(',')) {
+      textoLimpo = textoLimpo.replace(/\./g, '').replace(',', '.');
+    }
+
+    if (textoLimpo === '') {
+      setErro('Informe um valor para a operação.');
+      setMensagem('');
+      return;
+    }
+
+    const quantia = Number(textoLimpo);
+
+    if (isNaN(quantia) || quantia <= 0) {
+      setErro('Digite um valor numérico maior que zero.');
+      setMensagem('');
+      return;
+    }
+
+    if (tipo === 'sacar' && quantia > saldo) {
+      setErro('Saldo insuficiente para este saque.');
+      setMensagem('');
+      return;
+    }
+
+    const novoSaldo =
+      tipo === 'depositar'
+        ? Math.round((saldo + quantia) * 100) / 100
+        : Math.round((saldo - quantia) * 100) / 100;
+
+    setSaldo(novoSaldo);
+    setValor('');
+    setErro('');
+    setMensagem(
+      `${tipo === 'depositar' ? 'Depósito' : 'Saque'} de ${formatarMoeda(quantia)} realizado.`
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.titulo}>Simulador Bancário</Text>
+
+      <View style={styles.cardSaldo}>
+        <Text style={styles.labelSaldo}>Saldo disponível</Text>
+        <Text style={styles.valorSaldo}>{formatarMoeda(saldo)}</Text>
+      </View>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Valor em R$ (ex: 200,00)"
+        placeholderTextColor="#888"
+        keyboardType="numeric"
+        value={valor}
+        onChangeText={setValor}
+      />
+
+      <View style={styles.botoesContainer}>
+        <TouchableOpacity
+          style={[styles.botao, styles.botaoDepositar]}
+          onPress={() => realizarOperacao('depositar')}
+        >
+          <Text style={styles.textoBotao}>Depositar</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.botao, styles.botaoSacar]}
+          onPress={() => realizarOperacao('sacar')}
+        >
+          <Text style={styles.textoBotao}>Sacar</Text>
+        </TouchableOpacity>
+      </View>
+
+      {erro !== '' && <Text style={styles.erro}>{erro}</Text>}
+      {mensagem !== '' && <Text style={styles.sucesso}>{mensagem}</Text>}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#121212',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  titulo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  cardSaldo: {
+    backgroundColor: '#1E1E1E',
+    padding: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  labelSaldo: {
+    color: '#AAAAAA',
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  valorSaldo: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  input: {
+    backgroundColor: '#1E1E1E',
+    color: '#FFFFFF',
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 16,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  botoesContainer: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  botao: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  botaoDepositar: {
+    backgroundColor: '#2E7D32',
+  },
+  botaoSacar: {
+    backgroundColor: '#FF6B00',
+  },
+  textoBotao: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  erro: {
+    color: '#FF5252',
+    textAlign: 'center',
+    marginTop: 16,
+    fontSize: 14,
+  },
+  sucesso: {
+    color: '#4CAF50',
+    textAlign: 'center',
+    marginTop: 16,
+    fontSize: 14,
+  },
+});
