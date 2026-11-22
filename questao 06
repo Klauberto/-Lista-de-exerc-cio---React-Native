@@ -1,0 +1,188 @@
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+} from 'react-native';
+
+const CANDIDATOS_INICIAIS = [
+  { id: 1, nome: 'Ana Clara', votos: 0 },
+  { id: 2, nome: 'Bruno Silva', votos: 0 },
+  { id: 3, nome: 'Carla Mendes', votos: 0 },
+];
+
+export default function App() {
+  const [candidatos, setCandidatos] = useState(CANDIDATOS_INICIAIS);
+
+  function votar(id) {
+    setCandidatos((atual) =>
+      atual.map((c) => (c.id === id ? { ...c, votos: c.votos + 1 } : c))
+    );
+  }
+
+  function zerarVotacao() {
+    setCandidatos(CANDIDATOS_INICIAIS);
+  }
+
+  const totalGeral = candidatos.reduce((soma, c) => soma + c.votos, 0);
+  const maiorVoto = Math.max(...candidatos.map((c) => c.votos));
+  const lideres =
+    totalGeral > 0 ? candidatos.filter((c) => c.votos === maiorVoto) : [];
+
+  function formatarNomes(lista) {
+    const nomes = lista.map((c) => c.nome);
+    if (nomes.length === 1) return nomes[0];
+    if (nomes.length === 2) return `${nomes[0]} e ${nomes[1]}`;
+    return `${nomes.slice(0, -1).join(', ')} e ${nomes[nomes.length - 1]}`;
+  }
+
+  function obterStatusLideranca() {
+    if (totalGeral === 0) {
+      return { texto: 'Nenhum voto registrado.', empate: false };
+    }
+
+    const sufixo = maiorVoto === 1 ? 'voto' : 'votos';
+
+    if (lideres.length > 1) {
+      return {
+        texto: `Empate na liderança: ${formatarNomes(lideres)} (${maiorVoto} ${sufixo} cada)`,
+        empate: true,
+      };
+    }
+
+    return {
+      texto: `Mais votado: ${lideres[0].nome} (${maiorVoto} ${sufixo})`,
+      empate: false,
+    };
+  }
+
+  const status = obterStatusLideranca();
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.titulo}>Eleição Estudantil</Text>
+
+      {candidatos.map((candidato) => (
+        <View key={candidato.id} style={styles.cardCandidato}>
+          <View>
+            <Text style={styles.nome}>{candidato.nome}</Text>
+            <Text style={styles.votos}>
+              {candidato.votos} {candidato.votos === 1 ? 'voto' : 'votos'}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.botaoVotar}
+            onPress={() => votar(candidato.id)}
+          >
+            <Text style={styles.textoBotao}>Votar</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+
+      <View style={styles.cardResumo}>
+        <Text style={styles.totalGeral}>Total geral: {totalGeral} votos</Text>
+        <Text
+          style={[
+            styles.statusTexto,
+            status.empate ? styles.empate : styles.lider,
+          ]}
+        >
+          {status.texto}
+        </Text>
+      </View>
+
+      <TouchableOpacity style={styles.botaoZerar} onPress={zerarVotacao}>
+        <Text style={styles.textoZerar}>Zerar votação</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#121212',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  titulo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  cardCandidato: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#333',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  nome: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: 'bold',
+  },
+  votos: {
+    color: '#AAAAAA',
+    fontSize: 14,
+    marginTop: 4,
+  },
+  botaoVotar: {
+    backgroundColor: '#FF6B00',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  textoBotao: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  cardResumo: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 10,
+    padding: 18,
+    marginTop: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  totalGeral: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  statusTexto: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  lider: {
+    color: '#4CAF50',
+  },
+  empate: {
+    color: '#FFD54F',
+  },
+  botaoZerar: {
+    marginTop: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#444',
+    alignItems: 'center',
+  },
+  textoZerar: {
+    color: '#AAAAAA',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+});
