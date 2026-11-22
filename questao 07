@@ -1,0 +1,191 @@
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Keyboard,
+} from 'react-native';
+
+export default function App() {
+  const [produto, setProduto] = useState('');
+  const [preco, setPreco] = useState('');
+  const [desconto, setDesconto] = useState('');
+  const [resultado, setResultado] = useState(null);
+  const [erro, setErro] = useState('');
+
+  function formatarMoeda(num) {
+    return (
+      'R$ ' +
+      num
+        .toFixed(2)
+        .replace('.', ',')
+        .replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+    );
+  }
+
+  function parseNumero(texto) {
+    let limpo = texto.trim();
+    if (limpo.includes(',')) {
+      limpo = limpo.replace(/\./g, '').replace(',', '.');
+    }
+    return limpo === '' ? NaN : Number(limpo);
+  }
+
+  function aplicarDesconto() {
+    Keyboard.dismiss();
+
+    if (produto.trim() === '') {
+      setErro('Informe o nome do produto.');
+      setResultado(null);
+      return;
+    }
+
+    const precoNum = parseNumero(preco);
+    if (isNaN(precoNum) || precoNum < 0) {
+      setErro('Informe um preço válido (não negativo).');
+      setResultado(null);
+      return;
+    }
+
+    const descontoNum = parseNumero(desconto);
+    if (isNaN(descontoNum) || descontoNum < 0 || descontoNum > 100) {
+      setErro('Informe um desconto válido entre 0% e 100%.');
+      setResultado(null);
+      return;
+    }
+
+    const economia = Math.round(precoNum * (descontoNum / 100) * 100) / 100;
+    const precoFinal = Math.round((precoNum - economia) * 100) / 100;
+
+    setErro('');
+    setResultado({
+      produto: produto.trim(),
+      economia: formatarMoeda(economia),
+      precoFinal: formatarMoeda(precoFinal),
+    });
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.titulo}>Calculadora de Desconto</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Nome do produto"
+        placeholderTextColor="#888"
+        value={produto}
+        onChangeText={setProduto}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Preço original em R$ (ex: 200,00)"
+        placeholderTextColor="#888"
+        keyboardType="numeric"
+        value={preco}
+        onChangeText={setPreco}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Desconto em % (ex: 15)"
+        placeholderTextColor="#888"
+        keyboardType="numeric"
+        value={desconto}
+        onChangeText={setDesconto}
+      />
+
+      <TouchableOpacity style={styles.botao} onPress={aplicarDesconto}>
+        <Text style={styles.textoBotao}>Aplicar desconto</Text>
+      </TouchableOpacity>
+
+      {erro !== '' && <Text style={styles.erro}>{erro}</Text>}
+
+      {resultado && (
+        <View style={styles.card}>
+          <Text style={styles.nomeProduto}>{resultado.produto}</Text>
+
+          <Text style={styles.label}>Economia:</Text>
+          <Text style={styles.economia}>{resultado.economia}</Text>
+
+          <Text style={styles.label}>Preço final:</Text>
+          <Text style={styles.precoFinal}>{resultado.precoFinal}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#121212',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  titulo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  input: {
+    backgroundColor: '#1E1E1E',
+    color: '#FFFFFF',
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  botao: {
+    backgroundColor: '#FF6B00',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  textoBotao: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  erro: {
+    color: '#FF5252',
+    textAlign: 'center',
+    marginTop: 14,
+    fontSize: 14,
+  },
+  card: {
+    backgroundColor: '#1E1E1E',
+    padding: 20,
+    borderRadius: 10,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  nomeProduto: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  label: {
+    color: '#AAAAAA',
+    fontSize: 14,
+    marginTop: 6,
+  },
+  economia: {
+    color: '#4CAF50',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  precoFinal: {
+    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+});
