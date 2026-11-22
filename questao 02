@@ -1,0 +1,189 @@
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Keyboard,
+} from 'react-native';
+
+export default function App() {
+  const [nome, setNome] = useState('');
+  const [nota1, setNota1] = useState('');
+  const [nota2, setNota2] = useState('');
+  const [nota3, setNota3] = useState('');
+  const [resultado, setResultado] = useState(null);
+  const [erro, setErro] = useState('');
+
+  function calcularMedia() {
+    Keyboard.dismiss();
+
+    if (nome.trim() === '') {
+      setErro('Informe o nome do estudante.');
+      setResultado(null);
+      return;
+    }
+
+    const entradas = [nota1, nota2, nota3].map((n) => n.trim().replace(',', '.'));
+
+    if (entradas.some((n) => n === '')) {
+      setErro('Preencha todas as três notas.');
+      setResultado(null);
+      return;
+    }
+
+    const notas = entradas.map(Number);
+
+    if (notas.some((n) => isNaN(n) || n < 0 || n > 10)) {
+      setErro('As notas devem ser números entre 0 e 10.');
+      setResultado(null);
+      return;
+    }
+
+    const media = (notas[0] + notas[1] + notas[2]) / 3;
+    const aprovado = media >= 7.0;
+
+    setErro('');
+    setResultado({
+      nome: nome.trim(),
+      media: media.toFixed(1).replace('.', ','),
+      situacao: aprovado ? 'Aprovado' : 'Reprovado',
+      aprovado,
+    });
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.titulo}>Cálculo de Média</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Nome do estudante"
+        placeholderTextColor="#888"
+        value={nome}
+        onChangeText={setNome}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Nota 1 (0 a 10)"
+        placeholderTextColor="#888"
+        keyboardType="numeric"
+        value={nota1}
+        onChangeText={setNota1}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Nota 2 (0 a 10)"
+        placeholderTextColor="#888"
+        keyboardType="numeric"
+        value={nota2}
+        onChangeText={setNota2}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Nota 3 (0 a 10)"
+        placeholderTextColor="#888"
+        keyboardType="numeric"
+        value={nota3}
+        onChangeText={setNota3}
+      />
+
+      <TouchableOpacity style={styles.botao} onPress={calcularMedia}>
+        <Text style={styles.textoBotao}>Calcular média</Text>
+      </TouchableOpacity>
+
+      {erro !== '' && <Text style={styles.erro}>{erro}</Text>}
+
+      {resultado && (
+        <View style={styles.card}>
+          <Text style={styles.nomeResultado}>{resultado.nome}</Text>
+          <Text style={styles.media}>Média: {resultado.media}</Text>
+          <Text
+            style={[
+              styles.situacao,
+              resultado.aprovado ? styles.aprovado : styles.reprovado,
+            ]}
+          >
+            {resultado.situacao}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#121212',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  titulo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  input: {
+    backgroundColor: '#1E1E1E',
+    color: '#FFFFFF',
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  botao: {
+    backgroundColor: '#FF6B00',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  textoBotao: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  erro: {
+    color: '#FF5252',
+    textAlign: 'center',
+    marginTop: 14,
+    fontSize: 14,
+  },
+  card: {
+    backgroundColor: '#1E1E1E',
+    padding: 20,
+    borderRadius: 10,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  nomeResultado: {
+    color: '#AAAAAA',
+    fontSize: 16,
+    marginBottom: 6,
+  },
+  media: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 6,
+  },
+  situacao: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  aprovado: {
+    color: '#4CAF50',
+  },
+  reprovado: {
+    color: '#FF5252',
+  },
+});
