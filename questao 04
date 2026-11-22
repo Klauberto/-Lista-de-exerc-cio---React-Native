@@ -1,0 +1,193 @@
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Keyboard,
+} from 'react-native';
+
+export default function App() {
+  const [temperatura, setTemperatura] = useState('');
+  const [sentido, setSentido] = useState('CtoF'); // 'CtoF' ou 'FtoC'
+  const [resultado, setResultado] = useState(null);
+  const [erro, setErro] = useState('');
+
+  function formatarNumero(num) {
+    return Number(num.toFixed(2)).toString().replace('.', ',');
+  }
+
+  function alterarSentido(novoSentido) {
+    setSentido(novoSentido);
+    setResultado(null);
+    setErro('');
+  }
+
+  function converter() {
+    Keyboard.dismiss();
+    const textoLimpo = temperatura.trim().replace(',', '.');
+
+    if (textoLimpo === '') {
+      setErro('Informe uma temperatura.');
+      setResultado(null);
+      return;
+    }
+
+    const valor = Number(textoLimpo);
+
+    if (isNaN(valor)) {
+      setErro('Digite um valor numérico válido.');
+      setResultado(null);
+      return;
+    }
+
+    const convertido =
+      sentido === 'CtoF' ? (valor * 9) / 5 + 32 : ((valor - 32) * 5) / 9;
+
+    const origem = sentido === 'CtoF' ? '°C' : '°F';
+    const destino = sentido === 'CtoF' ? '°F' : '°C';
+
+    setErro('');
+    setResultado(
+      `${formatarNumero(valor)} ${origem} = ${formatarNumero(convertido)} ${destino}`
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.titulo}>Conversor de Temperatura</Text>
+
+      <View style={styles.seletorContainer}>
+        <TouchableOpacity
+          style={[
+            styles.opcao,
+            sentido === 'CtoF' && styles.opcaoAtiva,
+          ]}
+          onPress={() => alterarSentido('CtoF')}
+        >
+          <Text style={styles.textoOpcao}>°C → °F</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.opcao,
+            sentido === 'FtoC' && styles.opcaoAtiva,
+          ]}
+          onPress={() => alterarSentido('FtoC')}
+        >
+          <Text style={styles.textoOpcao}>°F → °C</Text>
+        </TouchableOpacity>
+      </View>
+
+      <TextInput
+        style={styles.input}
+        placeholder={
+          sentido === 'CtoF'
+            ? 'Temperatura em °C (ex: 30)'
+            : 'Temperatura em °F (ex: 86)'
+        }
+        placeholderTextColor="#888"
+        keyboardType="numbers-and-punctuation"
+        value={temperatura}
+        onChangeText={setTemperatura}
+      />
+
+      <TouchableOpacity style={styles.botao} onPress={converter}>
+        <Text style={styles.textoBotao}>Converter</Text>
+      </TouchableOpacity>
+
+      {erro !== '' && <Text style={styles.erro}>{erro}</Text>}
+
+      {resultado !== null && (
+        <View style={styles.card}>
+          <Text style={styles.label}>Resultado:</Text>
+          <Text style={styles.valor}>{resultado}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#121212',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  titulo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  seletorContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 16,
+  },
+  opcao: {
+    flex: 1,
+    backgroundColor: '#1E1E1E',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  opcaoAtiva: {
+    borderColor: '#FF6B00',
+    backgroundColor: '#2A1B10',
+  },
+  textoOpcao: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  input: {
+    backgroundColor: '#1E1E1E',
+    color: '#FFFFFF',
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  botao: {
+    backgroundColor: '#FF6B00',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  textoBotao: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  erro: {
+    color: '#FF5252',
+    textAlign: 'center',
+    marginTop: 16,
+    fontSize: 14,
+  },
+  card: {
+    backgroundColor: '#1E1E1E',
+    padding: 20,
+    borderRadius: 10,
+    marginTop: 24,
+    alignItems: 'center',
+  },
+  label: {
+    color: '#AAAAAA',
+    fontSize: 14,
+    marginBottom: 6,
+  },
+  valor: {
+    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+});
