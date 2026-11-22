@@ -1,0 +1,234 @@
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Keyboard,
+} from 'react-native';
+
+export default function App() {
+  const [nome, setNome] = useState('');
+  const [matricula, setMatricula] = useState('');
+  const [email, setEmail] = useState('');
+  const [curso, setCurso] = useState('');
+  const [estudantes, setEstudantes] = useState([]);
+  const [erro, setErro] = useState('');
+
+  function cadastrarEstudante() {
+    Keyboard.dismiss();
+
+    const nomeLimpo = nome.trim();
+    const matriculaLimpa = matricula.trim();
+    const emailLimpo = email.trim();
+    const cursoLimpo = curso.trim();
+
+    if (!nomeLimpo || !matriculaLimpa || !emailLimpo || !cursoLimpo) {
+      setErro('Preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailLimpo);
+    if (!emailValido) {
+      setErro('Informe um e-mail válido.');
+      return;
+    }
+
+    const matriculaDuplicada = estudantes.some(
+      (item) => item.matricula.toLowerCase() === matriculaLimpa.toLowerCase()
+    );
+
+    if (matriculaDuplicada) {
+      setErro(`A matrícula ${matriculaLimpa} já está cadastrada.`);
+      return;
+    }
+
+    const novoEstudante = {
+      nome: nomeLimpo,
+      matricula: matriculaLimpa,
+      email: emailLimpo,
+      curso: cursoLimpo,
+    };
+
+    setEstudantes((atual) => [...atual, novoEstudante]);
+    setNome('');
+    setMatricula('');
+    setEmail('');
+    setCurso('');
+    setErro('');
+  }
+
+  function removerEstudante(matriculaAlvo) {
+    setEstudantes((atual) =>
+      atual.filter((item) => item.matricula !== matriculaAlvo)
+    );
+  }
+
+  return (
+    <ScrollView
+      style={styles.tela}
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+    >
+      <Text style={styles.titulo}>Cadastro de Estudantes</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Nome completo (ex: Maria Silva)"
+        placeholderTextColor="#888"
+        value={nome}
+        onChangeText={setNome}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Matrícula (ex: 20260001)"
+        placeholderTextColor="#888"
+        value={matricula}
+        onChangeText={setMatricula}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="E-mail (ex: maria@exemplo.com)"
+        placeholderTextColor="#888"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        value={email}
+        onChangeText={setEmail}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Curso (ex: Sistemas de Informação)"
+        placeholderTextColor="#888"
+        value={curso}
+        onChangeText={setCurso}
+      />
+
+      <TouchableOpacity style={styles.botao} onPress={cadastrarEstudante}>
+        <Text style={styles.textoBotao}>Cadastrar estudante</Text>
+      </TouchableOpacity>
+
+      {erro !== '' && <Text style={styles.erro}>{erro}</Text>}
+
+      <Text style={styles.subtitulo}>
+        Registros cadastrados ({estudantes.length})
+      </Text>
+
+      {estudantes.length === 0 ? (
+        <Text style={styles.vazio}>Nenhum estudante cadastrado.</Text>
+      ) : (
+        estudantes.map((estudante) => (
+          <View key={estudante.matricula} style={styles.card}>
+            <Text style={styles.cardNome}>{estudante.nome}</Text>
+            <Text style={styles.cardInfo}>Matrícula: {estudante.matricula}</Text>
+            <Text style={styles.cardInfo}>E-mail: {estudante.email}</Text>
+            <Text style={styles.cardInfo}>Curso: {estudante.curso}</Text>
+
+            <TouchableOpacity
+              style={styles.botaoRemover}
+              onPress={() => removerEstudante(estudante.matricula)}
+            >
+              <Text style={styles.textoRemover}>Remover</Text>
+            </TouchableOpacity>
+          </View>
+        ))
+      )}
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  tela: {
+    flex: 1,
+    backgroundColor: '#121212',
+  },
+  container: {
+    padding: 24,
+    paddingTop: 56,
+    paddingBottom: 40,
+  },
+  titulo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  input: {
+    backgroundColor: '#1E1E1E',
+    color: '#FFFFFF',
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  botao: {
+    backgroundColor: '#FF6B00',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  textoBotao: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  erro: {
+    color: '#FF5252',
+    textAlign: 'center',
+    marginTop: 14,
+    fontSize: 14,
+  },
+  subtitulo: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 28,
+    marginBottom: 12,
+  },
+  vazio: {
+    color: '#888888',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  card: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  cardNome: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 6,
+  },
+  cardInfo: {
+    color: '#CCCCCC',
+    fontSize: 14,
+    marginBottom: 3,
+  },
+  botaoRemover: {
+    marginTop: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FF5252',
+    alignItems: 'center',
+  },
+  textoRemover: {
+    color: '#FF5252',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+});
