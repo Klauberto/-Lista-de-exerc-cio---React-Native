@@ -1,0 +1,225 @@
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Keyboard,
+} from 'react-native';
+
+export default function App() {
+  const [produto, setProduto] = useState('');
+  const [qtdInicial, setQtdInicial] = useState('');
+  const [movimentacao, setMovimentacao] = useState('');
+  const [estoqueAtual, setEstoqueAtual] = useState(null);
+  const [erro, setErro] = useState('');
+
+  function alterarQtdInicial(valor) {
+    setQtdInicial(valor);
+    setEstoqueAtual(null);
+    setErro('');
+  }
+
+  function movimentarEstoque(tipo) {
+    Keyboard.dismiss();
+
+    if (produto.trim() === '') {
+      setErro('Informe o nome do produto.');
+      return;
+    }
+
+    let base = estoqueAtual;
+
+    if (base === null) {
+      const inicialStr = qtdInicial.trim();
+      const inicialNum = Number(inicialStr);
+
+      if (inicialStr === '' || !Number.isInteger(inicialNum) || inicialNum < 0) {
+        setErro('Informe uma quantidade inicial inteira (0 ou maior).');
+        return;
+      }
+      base = inicialNum;
+    }
+
+    const movStr = movimentacao.trim();
+    const movNum = Number(movStr);
+
+    if (movStr === '' || !Number.isInteger(movNum) || movNum <= 0) {
+      setErro('Informe uma movimentação inteira maior que zero.');
+      return;
+    }
+
+    if (tipo === 'retirar' && movNum > base) {
+      setErro(`Retirada negada. Disponível em estoque: ${base} unidade(s).`);
+      return;
+    }
+
+    const novoEstoque = tipo === 'adicionar' ? base + movNum : base - movNum;
+    setEstoqueAtual(novoEstoque);
+    setMovimentacao('');
+    setErro('');
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.titulo}>Controle de Estoque</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Nome do produto"
+        placeholderTextColor="#888"
+        value={produto}
+        onChangeText={setProduto}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Quantidade inicial (ex: 20)"
+        placeholderTextColor="#888"
+        keyboardType="number-pad"
+        value={qtdInicial}
+        onChangeText={alterarQtdInicial}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Movimentação (ex: 7)"
+        placeholderTextColor="#888"
+        keyboardType="number-pad"
+        value={movimentacao}
+        onChangeText={setMovimentacao}
+      />
+
+      <View style={styles.botoesContainer}>
+        <TouchableOpacity
+          style={[styles.botao, styles.botaoAdicionar]}
+          onPress={() => movimentarEstoque('adicionar')}
+        >
+          <Text style={styles.textoBotao}>Adicionar estoque</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.botao, styles.botaoRetirar]}
+          onPress={() => movimentarEstoque('retirar')}
+        >
+          <Text style={styles.textoBotao}>Retirar estoque</Text>
+        </TouchableOpacity>
+      </View>
+
+      {erro !== '' && <Text style={styles.erro}>{erro}</Text>}
+
+      {estoqueAtual !== null && (
+        <View style={styles.card}>
+          <Text style={styles.nomeProduto}>{produto.trim()}</Text>
+          <Text style={styles.label}>Disponível em estoque:</Text>
+          <Text style={styles.valor}>
+            {estoqueAtual} {estoqueAtual === 1 ? 'unidade' : 'unidades'}
+          </Text>
+
+          {estoqueAtual < 5 && (
+            <View style={styles.alertaBox}>
+              <Text style={styles.alertaTexto}>
+                Alerta: estoque baixo! Restam menos de 5 unidades.
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#121212',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  titulo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  input: {
+    backgroundColor: '#1E1E1E',
+    color: '#FFFFFF',
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  botoesContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 4,
+  },
+  botao: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  botaoAdicionar: {
+    backgroundColor: '#2E7D32',
+  },
+  botaoRetirar: {
+    backgroundColor: '#FF6B00',
+  },
+  textoBotao: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  erro: {
+    color: '#FF5252',
+    textAlign: 'center',
+    marginTop: 14,
+    fontSize: 14,
+  },
+  card: {
+    backgroundColor: '#1E1E1E',
+    padding: 20,
+    borderRadius: 10,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  nomeProduto: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  label: {
+    color: '#AAAAAA',
+    fontSize: 14,
+  },
+  valor: {
+    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  alertaBox: {
+    backgroundColor: '#3D2B00',
+    borderColor: '#FFB300',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 14,
+    width: '100%',
+  },
+  alertaTexto: {
+    color: '#FFD54F',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 14,
+  },
+});
